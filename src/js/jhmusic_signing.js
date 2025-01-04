@@ -1,10 +1,10 @@
 import {getAccount, signMessage, verifyMessage} from '@wagmi/core';
 import {mainnet, optimism} from '@wagmi/core/chains';
 import {createWeb3Modal, defaultWagmiConfig} from '@web3modal/wagmi'
-import { hexToBytes } from 'viem'
+import { hexToBytes, keccak256, toHex, stringToBytes } from 'viem'
 
 const projectId = '3e6e7e58a5918c44fa42816d90b735a6'
-const take = 23;
+// const take = 23;
 
 // 2. Create wagmiConfig
 const metadata = {
@@ -53,70 +53,123 @@ function splitAndReconstituteSignature(signature, vOffset) {
 
 let details = {};
 
+function calculateHash(message) {
+    const messageBytes = stringToBytes(message);
+    return keccak256(messageBytes);
+}
+
 async function signPlaintextAndVerify() {
+    // Check for connected account first
+    const account = getAccount(config);
+    if (!account.isConnected) {
+        const modal = createWeb3Modal({
+            wagmiConfig: config,
+            projectId,
+        });
+        modal.open();
+        return;
+    }
+
     let signatureBeforeVSwap;
     let signatureAfterVSwap;
-    const account = getAccount(config);
-    console.log("Running signPlaintextAndVerify")
-    const plaintext_as_hex_string = '0x969072f83e6bfe3b1b6605da7d94f5148d4f975542d4629c48850c6b62a5ca7b';
-    const plaintext = hexToBytes(plaintext_as_hex_string);
+
+    // Get message from textarea
+    const messageInput = document.getElementById('messageInput').value;
+    const prehash = document.getElementById('prehash').checked;
+
+    let messageToSign;
+    let originalMessage = messageInput;
+    if (prehash) {
+        const hashedMessage = calculateHash(messageInput);
+        messageToSign = hashedMessage;
+    } else {
+        messageToSign = { raw: stringToBytes(messageInput) };
+    }
 
     try {
-        console.log("Signing message:", plaintext);
-        console.log("Message length:", plaintext.length);
 
         // Sign the message
         signatureBeforeVSwap = await signMessage(config, {
-            message: {raw: plaintext},
+            message: messageToSign,
         })
 
     } catch (error) {
         console.error('Error signing message:', error);
         alert('Failed to sign the message. See console for details.');
-        return
+        return;
     }
 
-
-    // Now that we've signed, let's verify.
-
-    const parts = splitAndReconstituteSignature(signatureBeforeVSwap, 4);
-    console.log('r:', parts.r);
-    console.log('s:', parts.s);
-    console.log('v:', parts.v);
-
-
+    // Now verify and process signature
+    const parts = splitAndReconstituteSignature(signatureBeforeVSwap, 0);
     signatureAfterVSwap = parts.fullSignature;
 
     const isValid = await verifyMessage(config, {
         address: account['address'],
-        message: {raw: plaintext},
+        message: originalMessage,
         signature: signatureBeforeVSwap,
     });
 
-    console.log("isValid", isValid, "for address: ", account['address'], "with message", plaintext, "and signature", signatureBeforeVSwap);
+    // Display results
+    details = {
+        signature: signatureBeforeVSwap,
+        // signatureAfter: signatureAfterVSwap,
+        address: account['address'],
+        r: parts.r,
+        s: parts.s,
+        v: parts.v,
+        // oldV: parts.oldV,
+        // take: take,
+        isValid: isValid
+    };
 
-    // Display the signature
-    details['signatureBefore'] = signatureBeforeVSwap;
-    details['signatureAfter'] = signatureAfterVSwap;
-    details['address'] = account['address'];
-    details['r'] = parts.r;
-    details['s'] = parts.s;
-    details['v'] = parts.v;
-    details['oldV'] = parts.oldV;
-    details['take'] = take;
-    details['isValid'] = isValid;
+    document.getElementById('signatureOutput').innerHTML =
+        JSON.stringify(details, null, 2);
+    document.getElementById('messageOutput').innerHTML =
+        `\nSigned Message: ${originalMessage}`;
+}
 
-    document.getElementById('signatureOutput').innerHTML = JSON.stringify(details, null, 1);
-    document.getElementById('messageOutput').innerHTML = "<br/>Plaintext: " + plaintext;
-    console.log("Signature before V swap:", signatureBeforeVSwap)
-    console.log("Signature after V swap:", signatureAfterVSwap)
+function showHashDigest() {
+    const messageInput = document.getElementById('messageInput').value;
+    const hashedMessage = calculateHash(messageInput);
+    const hashDisplay = document.getElementById('hashDisplay');
+
+    document.getElementById('hashOutput').textContent = hashedMessage;
+    hashDisplay.classList.remove('d-none');
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        // Optional: Show feedback that it was copied
+        const copyButton = document.getElementById('copyHashButton');
+        const originalText = copyButton.textContent;
+        copyButton.textContent = 'Copied!';
+        setTimeout(() => {
+            copyButton.textContent = originalText;
+        }, 2000);
+    });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     const signButton = document.getElementById('signButton');
+    const prehashCheckbox = document.getElementById('prehash');
+    const showDigestButton = document.getElementById('showDigestButton');
+    const copyHashButton = document.getElementById('copyHashButton');
+
     if (signButton) {
-        console.log("Binding signButton");
         signButton.addEventListener('click', signPlaintextAndVerify);
+    }
+
+    if (showDigestButton) {
+        showDigestButton.addEventListener('click', showHashDigest);
+    }
+
+    if (copyHashButton) {
+        copyHashButton.addEventListener('click', () => {
+            const hashOutput = document.getElementById('hashOutput');
+            if (hashOutput.textContent) {
+                copyToClipboard(hashOutput.textContent);
+            }
+        });
     }
 
     const modal = createWeb3Modal({

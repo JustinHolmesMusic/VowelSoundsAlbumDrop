@@ -4,11 +4,48 @@
 
 <div id="content">
     <div class="container">
-         <h3 class="bright larissa">Take 24:</h3>
-        <h3 class="bright larissa">Sign 0x969072f83e6bfe3b1b6605da7d94f5148d4f975542d4629c48850c6b62a5ca7b</h3>
-<w3m-button></w3m-button>
-        <button id="signButton">Sign Plaintext</button>
-        <pre class="showTextResult"><code id="signatureOutput"></code><code id="messageOutput"></code></pre>
+        <h3 class="bright larissa">Sign Arbitrary Message</h3>
+        
+        <div class="mb-4">
+            <w3m-button></w3m-button>
+        </div>
+
+        <div class="signing-section">
+            <div class="form-group mb-4">
+                <label for="messageInput" class="form-label">Message to Sign:</label>
+                <textarea id="messageInput" 
+                    class="form-control font-monospace"
+                    rows="12"
+                    placeholder="Enter message or contract text"></textarea>
+                
+                <div class="form-check mt-3">
+                    <input type="checkbox" id="prehash" class="form-check-input">
+                    <label class="form-check-label" for="prehash">Prehash message (keccak256)</label>
+                </div>
+
+                <button id="showDigestButton" 
+                    class="btn btn-secondary mt-2">
+                    Preview Hash Digest
+                </button>
+            </div> 
+
+            <div id="hashDisplay" class="alert alert-info">
+                <strong>Message Hash:</strong>
+                <code class="d-block mt-2" id="hashOutput"></code>
+            </div>
+
+            <button id="signButton" 
+                class="btn btn-primary">
+                Sign Message
+            </button>
+
+            <div class="output-area mt-4">
+                <pre class="p-3 rounded">
+                    <code id="signatureOutput"></code>
+                    <code id="messageOutput"></code>
+                </pre>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
