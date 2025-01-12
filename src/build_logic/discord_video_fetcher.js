@@ -3,8 +3,10 @@ import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 import fetch from 'node-fetch';
-import { fetchedAssetsDir } from './constants.js';
-import { blueRailroadContractAddress } from '../js/constants.js';
+import { getProjectDirs, initProjectDirs } from './locations.js';
+import { blueRailroadContractAddress } from './constants.js';
+
+initProjectDirs("justinholmes.com"); // TODO: Where does this justly belong, for tests?
 
 dotenv.config();
 
@@ -24,7 +26,25 @@ async function downloadVideo(videoUrl, outputPath) {
     fs.writeFileSync(outputPath, buffer);
 }
 
+export async function downloadVideos(metadataList, outputDir) {
+    if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+    }
+
+    for (const metadata of metadataList) {
+        const outputPath = path.join(outputDir, metadata.fileName);
+
+        // Skip if already downloaded
+        if (fs.existsSync(outputPath)) {
+            continue;
+        }
+
+        await downloadVideo(metadata.discordUrl, outputPath);
+    }
+}
+
 export async function fetchDiscordVideos(messageUrls) {
+    const { fetchedAssetsDir } = getProjectDirs();
     const client = new Client({
         intents: [
             GatewayIntentBits.MessageContent,
@@ -41,7 +61,7 @@ export async function fetchDiscordVideos(messageUrls) {
         for (const url of messageUrls) {
             const { channelId, messageId } = parseDiscordUrl(url);
             const videoFileName = `${messageId}.mp4`;
-            const videoPath = path.join(fetchedVideosDir, videoFileName);
+            const videoPath = path.join(fetchedAssetsDir, videoFileName);
 
             // Check if we already have this video
             if (fs.existsSync(videoPath)) {

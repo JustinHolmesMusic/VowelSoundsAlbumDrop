@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 import { Collection } from 'discord.js';
-import { blueRailroadContractAddress } from '../src/js/constants.js';
+import { blueRailroadContractAddress } from '../src/build_logic/constants.js';
 
 const mockFs = {
     existsSync: jest.fn(() => false),

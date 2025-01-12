@@ -3,7 +3,7 @@ import { slugify } from "./utils/text_utils.js";
 import { renderPage } from "./utils/rendering_utils.js";
 import fs from 'fs';
 import yaml from 'js-yaml';
-import path from 'path';
+import path from 'path'; ``
 import { getShowAndSetData } from "./show_and_set_data.js";
 import { marked } from 'marked';
 import { gatherAssets, unusedImages, imageMapping } from './asset_builder.js';
