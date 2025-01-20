@@ -19,7 +19,7 @@ dotenvConfig({path: `.env`});
 
 export async function fetchChainDataForShows(shows, config) {
     const { showsDir } = getProjectDirs();
-    console.time("chain-data-for-shows");
+    console.time("Shows, Sets, and Songs");
     // We expect shows to be the result of iterating through the show YAML files.
     // Now we'll add onchain data from those shows.
 
@@ -78,13 +78,13 @@ export async function fetchChainDataForShows(shows, config) {
         }
 
     }
-    console.timeEnd("chain-data-for-shows");
+    console.timeEnd("Shows, Sets, and Songs");
 
     return showsChainData;
 }
 
 export async function appendSetStoneDataToShows(showsChainData, config) {
-    console.time("set-stone-chaindata");
+    console.time("Set Stones");
     // should be called after the shows data has been appended to the shows object
 
     let number_of_stones_in_sets = 0;
@@ -202,14 +202,14 @@ export async function appendSetStoneDataToShows(showsChainData, config) {
         console.log("Number of stones in sets object: ", number_of_stones_in_sets);
     }
 
-    console.timeEnd("set-stone-chaindata");
+    console.timeEnd("Set Stones");
     return showsChainData;
 }
 
 ///////////BACK TO TONY
 
-async function getBlueRailroads(config) {
-    console.time("blue-railroads");
+export async function getBlueRailroads(config) {
+    console.time("Blue Railroads (listen to that old smokestack)");
     const blueRailroadCount = await readContract(config,
         {
             abi,
@@ -252,7 +252,7 @@ async function getBlueRailroads(config) {
         };
 
     }
-    console.timeEnd("blue-railroads");
+    console.timeEnd("Blue Railroads (listen to that old smokestack)");
     return blueRailroads;
 }
 
@@ -292,10 +292,9 @@ export function appendChainDataToShows(shows, chainData) {
 
 export async function fetch_chaindata(shows) {
 
-    console.time("block-numbers");
+    console.time("Block Heights");
 
-
-// Use the environment-specific variables
+    // API key things
     const apiKey = process.env.ALCHEMY_API_KEY;
 
     if (apiKey === undefined) {
@@ -317,7 +316,7 @@ export async function fetch_chaindata(shows) {
     const mainnetBlockNumber = await fetchBlockNumber(config, {chainId: mainnet.id});
     const optimismBlockNumber = await fetchBlockNumber(config, {chainId: optimism.id});
     const optimismSepoliaBlockNumber = await fetchBlockNumber(config, {chainId: optimismSepolia.id});
-    console.timeEnd("block-numbers");
+    console.timeEnd("Block Heights");
 
     const blueRailroads = await getBlueRailroads(config);
     let showsWithChainData = await fetchChainDataForShows(shows, config);

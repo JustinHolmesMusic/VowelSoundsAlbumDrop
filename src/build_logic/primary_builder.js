@@ -1,63 +1,30 @@
+// Node.js built-ins
+import fs from 'fs';
+import path from 'path';
+import { execSync } from 'child_process';
+
+// External packages
+import yaml from 'js-yaml';
+import { marked } from 'marked';
+import nunjucks from "nunjucks";
+
+// Local utilities and helpers
 import { getProjectDirs } from "./locations.js";
 import { slugify } from "./utils/text_utils.js";
 import { renderPage } from "./utils/rendering_utils.js";
-import fs from 'fs';
-import yaml from 'js-yaml';
-import path from 'path';
-import { getShowAndSetData } from "./show_and_set_data.js";
-import { marked } from 'marked';
-import { gatherAssets, unusedImages, imageMapping } from './asset_builder.js';
-import { deserializeChainData, serializeChainData } from './chaindata_db.js';
-import { execSync } from 'child_process';
-import { generateSetStonePages, renderSetStoneImages } from './setstone_utils.js';
 import { registerHelpers } from './utils/template_helpers.js';
-import { appendChainDataToShows, fetch_chaindata } from './chain_reading.js';
-import nunjucks from "nunjucks";
-import { blueRailroadContractAddress } from './constants.js';
 
-async function verifyBlueRailroadVideos() {
-    const { fetchedAssetsDir } = getProjectDirs();
-    const { shows, songs, pickers } = getShowAndSetData();
-    const chainId = '10';
-    const metadataPath = path.join(fetchedAssetsDir, `${chainId}-${blueRailroadContractAddress}.json`);
+// Data and asset management
+import { getShowAndSetData } from "./show_and_set_data.js";
+import { gatherAssets, unusedImages, imageMapping } from './asset_builder.js';
+import { deserializeChainData } from './chaindata_db.js';
+import { appendChainDataToShows } from './chain_reading.js';
 
-    if (!fs.existsSync(metadataPath)) {
-        throw new Error(
-            'Blue Railroad metadata not found! Please run:\n' +
-            'npm run fetch-video-metadata\n' +
-            'npm run download-videos'
-        );
-    }
+// Feature-specific modules
+import { generateSetStonePages, renderSetStoneImages } from './setstone_utils.js';
+import { verifyBlueRailroadVideos } from './blue_railroad.js';
 
-    const metadata = JSON.parse(fs.readFileSync(metadataPath));
-    const missingVideos = [];
-
-    for (const [tokenId, data] of Object.entries(metadata)) {
-        if (!data.video_url) continue; // Skip entries without videos
-
-        const expectedVideoPath = path.join(
-            fetchedAssetsDir,
-            `${chainId}-${blueRailroadContractAddress}-${tokenId}.mp4`
-        );
-
-        if (!fs.existsSync(expectedVideoPath)) {
-            missingVideos.push(tokenId);
-        }
-    }
-
-    if (missingVideos.length > 0) {
-        throw new Error(
-            `Missing videos for tokens: ${missingVideos.join(', ')}\n` +
-            'Please run: npm run download-videos'
-        );
-    }
-
-    // Sort by latest first.
-    return Object.entries(metadata).reverse()
-}
-
-
-export const runPrimaryBuild = async (skip_chain_data_fetch, site) => {
+export const runPrimaryBuild = async (site) => {
     const { outputPrimaryRootDir, dataDir, templateDir } = getProjectDirs();
     const { shows, songs, pickers, songsByProvenance } = getShowAndSetData();
 
@@ -90,22 +57,19 @@ export const runPrimaryBuild = async (skip_chain_data_fetch, site) => {
     /////////////////////////
     ///// Chapter one: chain data
     ////////////////////////////
-    console.time("chain-data");
-    if (skip_chain_data_fetch) {
-        console.log("Skipping chain data retrieval.");
-    } else {
-        const fetchedchainData = await fetch_chaindata(shows);
-        serializeChainData(fetchedchainData);
-    }
 
-    let chainData
+    // Note: We're not fetching chain data here.  We're just deserializing it.
+    // To build chain data, run `npm run fetch-chain-data`.
+
+    console.time('chain-data');
+    let chainData;
 
     try {
         chainData = deserializeChainData();
     } catch (e) {
         // If the error is that the directory wasn't found, make a suggestion.
-        if (e.code === 'ENOENT' && skip_chain_data_fetch) {
-            throw new Error("Chain data not found, and you're running with 'skip_chain_data_fetch'. You probably need to fetch chain data.");
+        if (e.code === 'ENOENT') {
+            throw new Error("Chain data not found. You probably need to fetch chain data with `npm run fetch-chain-data`.");
         } else {
             throw e;
         }
@@ -126,7 +90,7 @@ export const runPrimaryBuild = async (skip_chain_data_fetch, site) => {
     ////////////////////////////////////////////////
     ///// Chapter three: One-off Pages
     /////////////////////////////////////////////
-    console.time('pages-yaml-read');
+    console.time('One Off Pages');
 
     ////////
     /// Chapter 3.1: Register helpers, partials, and context
@@ -145,7 +109,7 @@ export const runPrimaryBuild = async (skip_chain_data_fetch, site) => {
         'chainData': chainData,
     };
 
-    if (site === "justinholmes.com") {
+    if (site === "justinholmes.com") { // TODO: Make this more general
         // Copy client-side partials to the output directory
         fs.cpSync(path.join(templateDir, 'client_partials'), path.join(outputSiteDir, 'client_partials'), { recursive: true });
     }
@@ -300,7 +264,7 @@ export const runPrimaryBuild = async (skip_chain_data_fetch, site) => {
             chainData,
         };
 
-        // See if we have a MD file with long-form description.
+        // See if we have a MD file with long-form commentary for the song.
         let commentary;
         const commentary_path = path.resolve(dataDir, `songs_and_tunes/${song_slug}.md`);
         if (fs.existsSync(commentary_path)) {

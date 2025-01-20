@@ -6,15 +6,14 @@
     "get-time-data": "node src/build_logic/get_time_data.js",
     "download-videos": "node src/build_logic/download_videos.js",
     "build": "webpack --config src/build_logic/webpack.prod.js",
-    "dev": "concurrently \"npm run dev:jh\" \"npm run dev:cg\"",
     "dev:jh": "SKIP_CHAIN_DATA=true NODE_ENV=development webpack serve --config src/build_logic/webpack.justinholmes.dev.js",
     "dev:cg": "SKIP_CHAIN_DATA=true NODE_ENV=development webpack serve --config src/build_logic/webpack.cryptograss.dev.js",
-    "build-no-chain-update": "SKIP_CHAIN_DATA=true webpack --mode production --config src/build_logic/webpack.prod.js",
     "seed-dice": "node src/build_logic/seed_phrase_dice.js",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "debug-discord-fetcher": "node src/build_logic/debug_discord_fetcher.js",
     "fetch-video-metadata": "node src/build_logic/fetch_video_metadata.js",
-    "verify-dice": "node src/build_logic/verify_dice_roll.js"
+    "verify-dice": "node src/build_logic/verify_dice_roll.js",
+    "fetch-chain-data": "node src/build_logic/fetch_chain_data.js"
   },
   "type": "module",
   "keywords": [],

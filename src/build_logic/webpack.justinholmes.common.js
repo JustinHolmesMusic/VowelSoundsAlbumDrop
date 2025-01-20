@@ -51,8 +51,8 @@ export default {
                     to: path.resolve(outputDistDir, 'assets')
                 },
                 {
-                    from: 'src/fetched_assets',
-                    to: 'assets',
+                    from: path.resolve(srcDir, 'fetched_assets'),
+                    to: path.resolve(outputDistDir, 'assets/fetched'),
                     globOptions: {
                         dot: true,
                         gitignore: true,

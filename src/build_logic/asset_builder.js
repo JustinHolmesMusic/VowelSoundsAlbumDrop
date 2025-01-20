@@ -15,7 +15,6 @@ let unusedImages = new Set();
 let _assets_gathered = false;
 
 function gatherAssets() {
-
     const { imagesSourceDir, outputPrimaryRootDir, srcDir } = getProjectDirs();
     const imageDirPattern = `${imagesSourceDir}/**/*.{png,jpg,jpeg,gif,avif,svg,webp,mp4}`
 
@@ -44,6 +43,7 @@ function gatherAssets() {
 
     imageFiles.forEach(file => {
         // copy the vowelsound artifacts under their original name
+        // TODO: make this more general
         if (file.includes('vowelsound-artifacts')) {
             const vowelSoundArtifactsDir = path.join(imagesSourceDir, 'vowelsound-artifacts');
             const originalPath = path.relative(vowelSoundArtifactsDir, file).replace(/\\/g, '/');
@@ -70,8 +70,8 @@ function gatherAssets() {
         // Create mapping
         const originalPath = path.relative(imagesSourceDir, file).replace(/\\/g, '/');
         imageMapping[originalPath] = `/assets/images/${hashedFilename}`;
-        unusedImages.add(originalPath);
-    });
+        unusedImages.add(originalPath); // we add all files to unusedImages, then we remove them from the mapping when they are used
+    }); 
 
     // Simply copy the fetched assets directory
     if (fs.existsSync(fetchedAssetsDir)) {
@@ -83,6 +83,7 @@ function gatherAssets() {
             const relativePath = path.relative(fetchedAssetsDir, file);
             const outputPath = path.join(fetchedOutputDir, relativePath);
 
+            // TODO: Make hashes Issue #184
             // Ensure the output directory exists
             fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 
@@ -92,7 +93,7 @@ function gatherAssets() {
     }
 
     // Write the image mapping to a JSON file
-    fs.writeFileSync(mappingFilePath, JSON.stringify(imageMapping, null, 2));
+    fs.writeFileSync(mappingFilePath, JSON.stringify(imageMapping, null, 2), {encoding: 'utf8'});
     console.timeEnd('asset-gathering');
 
     let auxDataFile = fs.readFileSync("src/data/aux_data.yaml");

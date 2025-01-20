@@ -1,12 +1,5 @@
 import { jest } from '@jest/globals';
 import { Collection } from 'discord.js';
-import { blueRailroadContractAddress } from '../src/js/constants.js';
-
-const mockFs = {
-    existsSync: jest.fn(() => false),
-    writeFileSync: jest.fn(),
-    mkdirSync: jest.fn()
-};
 
 const mockMessage = {
     attachments: new Collection([
@@ -28,11 +21,6 @@ const mockClient = {
 };
 
 // Set up all mocks
-jest.unstable_mockModule('fs', () => ({
-    default: mockFs,
-    __esModule: true
-}));
-
 jest.unstable_mockModule('discord.js', () => ({
     Client: jest.fn(() => mockClient),
     GatewayIntentBits: {
@@ -41,55 +29,26 @@ jest.unstable_mockModule('discord.js', () => ({
         GuildMessages: 3
     }
 }));
-jest.unstable_mockModule('node-fetch', () => ({
-    default: jest.fn(() => Promise.resolve({
-        buffer: () => Promise.resolve(Buffer.from('video data'))
-    }))
-}));
 
-// Import the functions we want to test - TODO: Move this to a shared file?  Or only do it in one module?  It's a pain.
-let fetchDiscordVideos, generateVideoFilename;
+// Import the functions we want to test
+let generateVideoMetadata;
 beforeAll(async () => {
     const module = await import('../src/build_logic/discord_video_fetcher.js');
-    fetchDiscordVideos = module.fetchDiscordVideos;
-    generateVideoFilename = module.generateVideoFilename;
+    generateVideoMetadata = module.generateVideoMetadata;
 });
 
-describe('Discord Video Fetcher', () => {
-    test('downloads new video if not exists', async () => {
+describe('Discord Video Metadata Generator', () => {
+    test('generates metadata for discord video url', async () => {
         const testUrl = 'https://discord.com/channels/server/channel/message';
-        await fetchDiscordVideos([testUrl]);
-        expect(mockFs.existsSync).toHaveBeenCalled();
-        expect(mockFs.writeFileSync).toHaveBeenCalled();
+        const metadata = await generateVideoMetadata([testUrl]);
+
+        expect(metadata).toHaveLength(1);
+        expect(metadata[0]).toEqual(expect.objectContaining({
+            originalUrl: testUrl,
+            discordUrl: expect.any(String),
+            fileName: expect.stringMatching(/\.mp4$/),
+            timestamp: expect.any(Number),
+            contentType: expect.stringMatching(/^video\//)
+        }));
     });
-});
-
-describe('Video Filename Generation', () => {
-    test('generates correct filename format', () => {
-        const tokenId = '42';
-        const token = {
-            id: tokenId,
-            uri: 'https://discord.com/something/video.mp4'
-        };
-
-        const filename = generateVideoFilename(token, token.uri);
-        const metadataFromFilename = filename.split('.')[0];
-        const chainId = metadataFromFilename.split('-')[0];
-        const contractAddress = metadataFromFilename.split('-')[1];
-        const tokenIdFromFilename = metadataFromFilename.split('-')[2];
-        expect(chainId).toBe('10');  // Optimism.  OK.  But what if it's not?
-        expect(blueRailroadContractAddress).toContain(contractAddress);
-        expect(tokenIdFromFilename).toBe(tokenId);
-    });
-
-    test('handles different file extensions', () => {
-        const token = {
-            id: '42',
-            uri: 'https://discord.com/something/video.webm'
-        };
-
-        const filename = generateVideoFilename(token, token.uri);
-        expect(filename).toMatch(/\.webm$/);
-    });
-
 });
