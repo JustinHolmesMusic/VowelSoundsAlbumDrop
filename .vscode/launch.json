@@ -51,6 +51,24 @@
             "name": "Seed Phrase Dice",
             "runtimeExecutable": "npm",
             "runtimeArgs": ["run", "seed-dice"]
+        },
+        {
+            "type": "node",
+            "name": "Fetch Video Metadata",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": ["run", "fetch-video-metadata"]
+        },
+        {
+            "type": "node",
+            "name": "Download Videos",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": ["run", "download-videos"]
+        },
+        {
+            "type": "node",
+            "name": "Get Time Data",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": ["run", "get-time-data"]
         }
     ]
 }

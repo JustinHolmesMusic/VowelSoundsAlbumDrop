@@ -641,3 +641,82 @@ nav a img {
 .long-form-aside .caption {
     font-size: .8em;
 }
+
+
+.blue-railroad-section {
+    padding: 2rem;
+}
+
+.blue-railroad-intro {
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+
+.blue-railroad-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 2rem;
+    padding: 1rem 0;
+}
+
+.blue-railroad-card {
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.2s;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.blue-railroad-card:hover {
+    transform: translateY(-5px);
+}
+
+.blue-railroad-card .card-header {
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.blue-railroad-card .video-container {
+    position: relative;
+    padding-top: 56.25%; /* 16:9 Aspect Ratio */
+}
+
+.blue-railroad-card video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.blue-railroad-card .btn {
+    margin: 1rem;
+}
+
+.owner-section {
+    padding: 1rem;
+    text-align: center;
+}
+
+.owner-address {
+    font-family: 'Inconsolata', monospace;
+    font-size: 1.1em;
+    color: #7692ff;
+    word-break: break-all;
+    margin-bottom: 0.5rem;
+}
+
+.video-container {
+    position: relative;
+    padding-top: 56.25%; /* 16:9 Aspect Ratio */
+}
+
+.video-container video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: rgba(0, 0, 0, 0.2);
+}

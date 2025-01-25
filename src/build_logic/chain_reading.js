@@ -208,7 +208,7 @@ export async function appendSetStoneDataToShows(showsChainData, config) {
 
 ///////////BACK TO TONY
 
-async function getBlueRailroads(config) {
+export async function getBlueRailroads(config) {
     console.time("blue-railroads");
     const blueRailroadCount = await readContract(config,
         {

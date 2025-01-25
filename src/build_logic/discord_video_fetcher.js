@@ -3,8 +3,10 @@ import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 import fetch from 'node-fetch';
-import { fetchedAssetsDir } from './constants.js';
-import { blueRailroadContractAddress } from '../js/constants.js';
+import { getProjectDirs, initProjectDirs } from './locations.js';
+import { blueRailroadContractAddress } from './constants.js';
+
+initProjectDirs("justinholmes.com"); // TODO: Where does this justly belong, for tests?
 
 dotenv.config();
 
@@ -24,7 +26,24 @@ async function downloadVideo(videoUrl, outputPath) {
     fs.writeFileSync(outputPath, buffer);
 }
 
-export async function fetchDiscordVideos(messageUrls) {
+export async function downloadVideos(metadataList, outputDir) {
+    if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+    }
+
+    for (const metadata of metadataList) {
+        const outputPath = path.join(outputDir, metadata.fileName);
+
+        // Skip if already downloaded
+        if (fs.existsSync(outputPath)) {
+            continue;
+        }
+
+        await downloadVideo(metadata.discordUrl, outputPath);
+    }
+}
+
+export async function generateVideoMetadata(messageUrls) {
     const client = new Client({
         intents: [
             GatewayIntentBits.MessageContent,
@@ -35,60 +54,40 @@ export async function fetchDiscordVideos(messageUrls) {
 
     try {
         await client.login(process.env.DISCORD_BOT_TOKEN);
-
-        const videos = [];
+        const metadata = [];
 
         for (const url of messageUrls) {
             const { channelId, messageId } = parseDiscordUrl(url);
             const videoFileName = `${messageId}.mp4`;
-            const videoPath = path.join(fetchedVideosDir, videoFileName);
 
-            // Check if we already have this video
-            if (fs.existsSync(videoPath)) {
-                videos.push({
-                    originalUrl: url,
-                    localPath: videoPath,
-                    fileName: videoFileName
-                });
-                continue;
-            }
             let message;
             let videoAttachment;
 
             try {
                 const channel = await client.channels.fetch(channelId);
                 message = await channel.messages.fetch(messageId);
-
                 videoAttachment = message.attachments.find(
                     attachment => attachment.contentType?.startsWith('video/')
                 );
 
-            } catch (messageError) {
-                console.warn(`Failed to fetch message from ${url}:`, messageError);
-                continue;
-            }
-            try {
                 if (videoAttachment) {
-                    await downloadVideo(videoAttachment.url, videoPath);
-                    videos.push({
+                    metadata.push({
                         originalUrl: url,
-                        localPath: videoPath,
+                        discordUrl: videoAttachment.url,
                         fileName: videoFileName,
-                        timestamp: message.createdTimestamp
+                        timestamp: message.createdTimestamp,
+                        contentType: videoAttachment.contentType
                     });
-                } else {
-                    console.warn(`No video found in message ${url}`);
-                    continue;
                 }
-            } catch (messageError) {
-                console.warn(`Found message, but had problems fetching video from ${url}:`, messageError);
+            } catch (error) {
+                console.warn(`Failed to fetch message from ${url}:`, error);
             }
         }
 
         await client.destroy();
-        return videos;
+        return metadata;
     } catch (error) {
-        console.error('Error fetching Discord videos:', error);
+        console.error('Error fetching Discord video metadata:', error);
         throw error;
     }
 }
