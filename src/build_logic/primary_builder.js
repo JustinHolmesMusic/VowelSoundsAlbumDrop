@@ -24,8 +24,8 @@ import { appendChainDataToShows } from './chain_reading.js';
 import { generateSetStonePages, renderSetStoneImages } from './setstone_utils.js';
 import { verifyBlueRailroadVideos } from './blue_railroad.js';
 
-export const runPrimaryBuild = async (site) => {
-    const { outputPrimaryRootDir, dataDir, templateDir } = getProjectDirs();
+export const runPrimaryBuild = async () => {
+    const { outputPrimaryRootDir, dataDir, templateDir, site, outputPrimarySiteDir } = getProjectDirs();
     const { shows, songs, pickers, songsByProvenance } = getShowAndSetData();
 
     const ensureDirectories = () => {
@@ -48,11 +48,10 @@ export const runPrimaryBuild = async (site) => {
     // TODO: Do we need to make sure the root output directory exists?
 
     // ...now, same for the site-specific output directory.
-    const outputSiteDir = path.resolve(outputPrimaryRootDir, site);
-    if (fs.existsSync(outputSiteDir)) {
-        fs.rmSync(outputSiteDir, { recursive: true });
+    if (fs.existsSync(outputPrimarySiteDir)) {
+        fs.rmSync(outputPrimarySiteDir, { recursive: true });
     }
-    fs.mkdirSync(outputSiteDir, { recursive: true });
+    fs.mkdirSync(outputPrimarySiteDir, { recursive: true });
 
     /////////////////////////
     ///// Chapter one: chain data
@@ -111,7 +110,8 @@ export const runPrimaryBuild = async (site) => {
 
     if (site === "justinholmes.com") { // TODO: Make this more general
         // Copy client-side partials to the output directory
-        fs.cpSync(path.join(templateDir, 'client_partials'), path.join(outputSiteDir, 'client_partials'), { recursive: true });
+        fs.cpSync(path.join(templateDir, 'client_partials'),
+            path.join(outputPrimarySiteDir, 'client_partials'), { recursive: true });
     }
 
 
@@ -212,11 +212,11 @@ export const runPrimaryBuild = async (site) => {
     // Render things that we'll need later.
 
     if (site === "cryptograss.live") {
-        generateSetStonePages(shows, path.resolve(outputSiteDir, 'setstones'));
+        generateSetStonePages(shows, path.resolve(outputPrimarySiteDir, 'setstones'));
     }
 
 
-    renderSetStoneImages(shows, path.resolve(outputSiteDir, 'assets/images/setstones'));
+    renderSetStoneImages(shows, path.resolve(outputPrimarySiteDir, 'assets/images/setstones'));
 
     //////////////////////
     // Chapter 4.1: Show pages
@@ -378,5 +378,5 @@ export const runPrimaryBuild = async (site) => {
     });
 
     console.timeEnd('primary-build');
-    return outputSiteDir;
+    return true; // TODO: Return something useful.
 }

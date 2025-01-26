@@ -1,0 +1,18 @@
+# Disable the automatic trailing slash addition by mod_dir
+DirectorySlash Off
+
+# Enable the RewriteEngine
+RewriteEngine On
+
+# Rule 1: Serve any URL without .html by appending .html if the corresponding .html file exists
+RewriteCond %{REQUEST_FILENAME}\.html -f
+RewriteRule ^(.*[^/])$ $1.html [L]
+
+# Rule 2: Allow requests to existing directories and files without .html to proceed as normal
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ - [L]
+
+# Redirect .html URLs to the clean version
+RewriteCond %{THE_REQUEST} \s(.+)\.html\s [NC]
+RewriteRule ^(.*)\.html$ /$1 [R=301,L]

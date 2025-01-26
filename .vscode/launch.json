@@ -22,9 +22,21 @@
         },
         {
             "type": "node",
-            "name": "Build All",
+            "name": "Build justinholmes.com",
             "runtimeExecutable": "npm",
-            "runtimeArgs": ["run", "build"]
+            "runtimeArgs": ["run", "build"],
+            "env": {
+                "SITE": "justinholmes.com"
+            }
+        },
+        {
+            "type": "node",
+            "name": "Build cryptograss.live",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": ["run", "build"],
+            "env": {
+                "SITE": "cryptograss.live"
+            }
         },
         {
             "type": "node",

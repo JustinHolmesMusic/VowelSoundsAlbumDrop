@@ -26,7 +26,7 @@
     </div>
     <div class="col-5">
         {% if title_as_link %}<a href="{{ show.resource_url }}">{% endif %}
-        <img class="img-fluid" full-show src="{{ show.artist_id |resolveChart(show.blockheight, "full-show") }}">
+        <img class="img-fluid" full-show src="{{ show.artist_id |resolveGraph(show.blockheight, "full-show") }}">
         {% if title_as_link %}</a>{% endif %}
     </div>
     {% if show.has_set_stones_available %}

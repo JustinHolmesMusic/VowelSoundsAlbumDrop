@@ -49,19 +49,19 @@ export function registerHelpers(site) {
 
     // TODO: We removed 'resolveImage', so we now show every image as unused.  No good.
 
-    env.addFilter('resolveChart', function (artist_id, blockheight, setId) {
+    env.addFilter('resolveGraph', function (artist_id, blockheight, setId) {
 
         // Sanity check.
         if (artist_id === undefined || blockheight === undefined || setId === undefined) {
-            throw new Error("resolveChart requires artist_id, blockheight, and setId");
+            throw new Error("resolveGraph requires artist_id, blockheight, and setId");
         }
 
         let foundImage;
         let originalPath;
         if (setId === "full-show") {
-            originalPath = `charts/${artist_id}-${blockheight}-full-show-provenance.png`;
+            originalPath = `graphs/${artist_id}-${blockheight}-full-show-provenance.png`;
         } else {
-            originalPath = `charts/${artist_id}-${blockheight}-set-${setId}-provenance.png`;
+            originalPath = `graphs/${artist_id}-${blockheight}-set-${setId}-provenance.png`;
         }
         try {
             foundImage = imageMapping[originalPath];

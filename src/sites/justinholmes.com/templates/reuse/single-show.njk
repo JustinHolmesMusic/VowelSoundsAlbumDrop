@@ -85,7 +85,7 @@
                     </ul>
                 </div>
                 <div class="col-md-4">
-                    <img class="img-fluid" src="{{show.artist_id | resolveChart(show.blockheight, set_number)}}">
+                    <img class="img-fluid" src="{{show.artist_id | resolveGraph(show.blockheight, set_number)}}">
                 </div>
             </div>
             {% if show.has_set_stones_available %}

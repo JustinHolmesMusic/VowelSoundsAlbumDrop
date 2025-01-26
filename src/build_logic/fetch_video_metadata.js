@@ -12,6 +12,16 @@ import { getBlueRailroads } from './chain_reading.js';
 dotenv.config();
 
 async function getBlueRailroadMetadata() {
+
+    let apiKey = process.env.ALCHEMY_API_KEY;
+    let apiUri;
+    // Bail if the API key is not set.
+    if (apiKey) {
+        apiUri = `https://opt-mainnet.g.alchemy.com/v2/${apiKey}`;
+    } else {
+        throw new Error('The API key is not set in the environment variables.');
+    }
+
     const { fetchedAssetsDir } = getProjectDirs();
     const spinner = ora('Reading Blue Railroad contract data').start();
 
@@ -19,7 +29,7 @@ async function getBlueRailroadMetadata() {
         const config = createConfig({
             chains: [optimism],
             transports: {
-                [optimism.id]: http(`https://opt-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`)
+                [optimism.id]: http(apiUri)
             }
         });
 
@@ -73,4 +83,4 @@ async function getBlueRailroadMetadata() {
     }
 }
 
-getBlueRailroadMetadata().catch(console.error); 
+getBlueRailroadMetadata()

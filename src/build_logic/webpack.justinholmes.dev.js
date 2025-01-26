@@ -4,35 +4,45 @@ import { merge } from 'webpack-merge';
 import { getProjectDirs } from './locations.js';
 import path from 'path';
 
-const { outputDistDir, outputPrimaryRootDir } = getProjectDirs();
+import { runPrimaryBuild } from './primary_builder.js';
 
-const devExport = merge(common, {
-    devServer: {
-        port: 4000,
-        historyApiFallback: {
-            rewrites: [
-                { from: /\/$/, to: '/index.html' },
-                {
-                    from: /\/(.+)$/, to: function (context) {
-                        // Rewrite URLs like '/things' to '/things.html'
-                        return '/' + context.match[1] + '.html';
-                    }
-                },
-            ],
+const { outputDistDir, outputPrimaryRootDir, srcDir } = getProjectDirs();
+
+async function dev_config() {
+    await runPrimaryBuild();
+
+    return merge(common, {
+
+        devServer: {
+            devMiddleware: {
+                writeToDisk: true,
+            },
+            port: 4000,
+            historyApiFallback: {
+                rewrites: [
+                    { from: /\/$/, to: '/index.html' },
+                    {
+                        from: /\/(.+)$/, to: function (context) {
+                            // Rewrite URLs like '/things' to '/things.html'
+                            return '/' + context.match[1] + '.html';
+                        }
+                    },
+                ],
+            },
+            // TODO: Enforce this matching the CopyPlugin
+            static: [{
+                directory: path.join(outputPrimaryRootDir, 'assets'),
+                publicPath: '/assets',
+            },]
         },
-        // TODO: Enforce this matching the CopyPlugin
-        static: [{
-            directory: path.join(outputPrimaryRootDir, 'assets'),
-            publicPath: '/assets',
-        },]
-    },
-    mode: 'development',
-    devtool: 'eval-source-map',
-    plugins: [
-        new webpack.DefinePlugin({
-            'process.env.NODE_ENV': JSON.stringify('development'),
-        }),
-    ]
-});
+        mode: 'development',
+        devtool: 'eval-source-map',
+        plugins: [
+            new webpack.DefinePlugin({
+                'process.env.NODE_ENV': JSON.stringify('development'),
+            }),
+        ]
+    });
+}
 
-export default devExport;
+export default dev_config;

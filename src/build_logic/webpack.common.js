@@ -4,7 +4,7 @@ import path from 'path';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import CopyPlugin from 'copy-webpack-plugin';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
-import { outputjhcomDistDir, srcDir, templateDir } from "./constants.js";
+import { getProjectDirs } from './locations.js';
 import { runPrimaryBuild } from './primary_builder.js';
 
 // Check if SKIP_CHAIN_DATA is set

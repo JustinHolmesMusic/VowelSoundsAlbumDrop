@@ -10,7 +10,6 @@ import { blueRailroadContractAddress } from './constants.js';
  */
 export async function verifyBlueRailroadVideos() {
     const { fetchedAssetsDir } = getProjectDirs();
-    const { shows, songs, pickers } = getShowAndSetData();
     const chainId = '10';
     const metadataPath = path.join(fetchedAssetsDir, `${chainId}-${blueRailroadContractAddress}.json`);
 

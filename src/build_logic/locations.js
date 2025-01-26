@@ -1,10 +1,17 @@
 import { fileURLToPath } from "url";
 import path from "path";
 
-let projectDirs = {
-    initialized: false,
-    site: null
-};
+const projectDirs = new Proxy({}, {
+    get: function (target, prop) {
+        if (!(prop in target)) {
+            throw new Error(`KeyError: '${prop}' is not defined`);
+        }
+        return target[prop];
+    }
+});
+
+projectDirs.initialized = false;
+projectDirs.site = null;
 
 export function initProjectDirs(site_name) {
     // Prevent multiple initializations
